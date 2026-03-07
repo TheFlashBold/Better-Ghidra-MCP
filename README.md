@@ -2,6 +2,34 @@
 
 A Ghidra plugin that exposes the Ghidra API as an MCP (Model Context Protocol) server. This allows AI assistants like Claude to directly interact with Ghidra for reverse engineering tasks — no bridge or proxy needed.
 
+## Why "Better"?
+
+This is a drop-in replacement for [ghidra-mcp](https://github.com/bethington/ghidra-mcp) that fixes its core architectural problems:
+
+| | ghidra-mcp | better-ghidra-mcp |
+|---|---|---|
+| **Architecture** | Ghidra plugin (REST) + Python bridge (MCP) — two processes, two failure points | Single Ghidra plugin speaks MCP natively |
+| **Connection** | `stdio` → Python → HTTP → Ghidra | `http` → Ghidra (direct) |
+| **Dependencies** | Python, pip, requests, mcp SDK | None (just the JAR) |
+| **Setup** | Install plugin, install Python package, configure bridge script | Install plugin, add URL to `.mcp.json` |
+| **Tools** | ~30 | 160+ |
+| **Inline scripting** | No | Yes — run arbitrary Java code as GhidraScript |
+| **Multi-program** | No | Yes — switch between open programs |
+| **Data types** | Basic listing | Full CRUD for structs, enums, unions, typedefs, pointers, arrays |
+| **Batch operations** | No | Yes — batch rename, batch comments, batch decompile |
+| **Protocol** | MCP over stdio (requires bridge process) | MCP Streamable HTTP (direct connection) |
+
+### The bridge problem
+
+ghidra-mcp requires a Python process that translates between MCP (stdio) and REST (HTTP). This means:
+- Two processes to manage and debug
+- Extra latency on every call
+- Python + pip as runtime dependencies
+- The bridge can crash independently of Ghidra
+- Version mismatches between bridge and plugin
+
+better-ghidra-mcp eliminates all of this. The Ghidra plugin *is* the MCP server. Claude connects directly.
+
 ## Features
 
 - Native MCP protocol (JSON-RPC 2.0 over HTTP) — connects directly, no Python bridge
