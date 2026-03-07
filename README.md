@@ -1,4 +1,4 @@
-# GhidraMCP
+# better-ghidra-mcp
 
 A Ghidra plugin that exposes the Ghidra API as an MCP (Model Context Protocol) server. This allows AI assistants like Claude to directly interact with Ghidra for reverse engineering tasks — no bridge or proxy needed.
 
