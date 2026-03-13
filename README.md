@@ -41,7 +41,8 @@ Or use the install script:
 ./install.sh
 ```
 
-Then restart Ghidra. The plugin starts an HTTP server on port **8089**.
+Then restart Ghidra.
+Activate it under Extensions > Miscellaneous. The plugin starts an HTTP server on port **8089**.
 
 ## Configure Claude Code
 
