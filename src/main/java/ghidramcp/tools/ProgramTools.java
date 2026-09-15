@@ -34,7 +34,7 @@ public class ProgramTools {
             .handler(a -> "OK");
 
         s.tool("get_version", "Get GhidraMCP version")
-            .handler(a -> "GhidraMCP 2.0.0 (native MCP)");
+            .handler(a -> "GhidraMCP 2.0.0 (native MCP, inline-fix)");
 
         s.tool("list_open_programs", "List all open programs in Ghidra")
             .optParam("program", "Program name")

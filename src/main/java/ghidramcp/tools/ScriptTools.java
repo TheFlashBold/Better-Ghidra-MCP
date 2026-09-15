@@ -11,12 +11,15 @@ import ghidramcp.mcp.McpServer;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.*;
 
 import static ghidramcp.mcp.McpServer.*;
 import static ghidramcp.tools.ToolHelper.*;
 
 public class ScriptTools {
     private static Path scriptDir() { return Paths.get(System.getProperty("user.home"), "ghidra_scripts"); }
+    private static final Pattern GHIDRA_SCRIPT_CLASS =
+        Pattern.compile("\\bpublic\\s+class\\s+([A-Za-z_$][A-Za-z0-9_$]*)\\s+extends\\s+GhidraScript\\b");
 
     private static GhidraState makeState(GhidraMCPPlugin plugin, Program p) {
         return new GhidraState(plugin.getPluginTool(), plugin.getPluginTool().getProject(), p, null, null, null);
@@ -130,16 +133,26 @@ public class ScriptTools {
             .handler(a -> {
                 Program p = requireProgram(plugin, a);
                 String code = str(a, "code");
-                Path tempScript = Files.createTempFile("mcp_inline_", ".java");
+                Path dir = scriptDir();
+                Files.createDirectories(dir);
+                Path tempScript = null;
                 try {
+                    String className;
                     if (!code.contains("extends GhidraScript")) {
-                        String className = tempScript.getFileName().toString().replace(".java", "").replaceAll("[^a-zA-Z0-9_]", "_");
+                        tempScript = Files.createTempFile(dir, "McpInline_", ".java");
+                        className = tempScript.getFileName().toString().replace(".java", "").replaceAll("[^a-zA-Z0-9_$]", "_");
                         code = "import ghidra.app.script.GhidraScript;\n" +
                                "import ghidra.program.model.listing.*;\n" +
                                "import ghidra.program.model.symbol.*;\n" +
                                "import ghidra.program.model.address.*;\n" +
                                "public class " + className + " extends GhidraScript {\n" +
                                "    public void run() throws Exception {\n" + code + "\n    }\n}\n";
+                    } else {
+                        Matcher m = GHIDRA_SCRIPT_CLASS.matcher(code);
+                        if (!m.find()) throw new Exception("Inline GhidraScript must contain 'public class <Name> extends GhidraScript'");
+                        className = m.group(1);
+                        tempScript = dir.resolve(className + ".java");
+                        if (Files.exists(tempScript)) throw new Exception("Inline script class would overwrite existing script: " + tempScript);
                     }
                     Files.writeString(tempScript, code);
                     JavaScriptProvider provider = new JavaScriptProvider();
@@ -154,7 +167,9 @@ public class ScriptTools {
                     r.addProperty("success", true);
                     r.addProperty("output", baos.toString());
                     return new Gson().toJson(r);
-                } finally { Files.deleteIfExists(tempScript); }
+                } finally {
+                    if (tempScript != null) Files.deleteIfExists(tempScript);
+                }
             });
 
         s.tool("save_ghidra_script", "Save a script to ~/ghidra_scripts")
