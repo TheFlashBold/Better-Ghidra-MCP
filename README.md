@@ -12,6 +12,7 @@ A Ghidra plugin that exposes the Ghidra API as an MCP (Model Context Protocol) s
 - Cross-reference analysis
 - Run Ghidra scripts (from file or inline Java)
 - Multi-program support
+- Import binaries from disk into the project (format auto-detection or raw images with a language override), with optional auto-analysis
 
 ## Requirements
 
@@ -72,7 +73,7 @@ src/main/java/ghidramcp/
     ├── DataTypeTools.java     # Structs, enums, unions, type management
     ├── SymbolTools.java       # Labels, xrefs, imports, exports, strings
     ├── MemoryTools.java       # Memory reads, hex dumps
-    ├── ProgramTools.java      # Program info, open/switch/save programs
+    ├── ProgramTools.java      # Program info, import/open/switch/save programs
     ├── AnalysisTools.java     # Auto-analysis, malware detection
     └── ScriptTools.java       # Run Ghidra scripts (file or inline)
 ```
